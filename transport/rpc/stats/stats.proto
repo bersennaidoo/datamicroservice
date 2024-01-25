@@ -4,10 +4,15 @@ package stats;
 
 option go_package = "github.com/bersennaidoo/microdataservice/transport/rpc/stats";
 
+service StatsService {
+	rpc Push(PushRequest) returns (PushResponse);
+}
+
 message PushRequest {
-  string property = 1;
-  uint32 section = 2;
-  uint32 id = 3;
+	string property = 1;
+	uint32 section = 2;
+	uint32 id = 3;
 }
 
 message PushResponse {}
+

@@ -1,0 +1,16 @@
+workspace:
+  base: /microdataservice
+
+kind: pipeline
+name: build
+
+steps:
+- name: test
+  image: bersennaidoo/microdataservice-build:v1.0.0
+  pull: never
+  commands:
+    - /usr/local/bin/protoc --proto_path=$GOPATH/src:. -Itransport/rpc/stats --go_out=paths=source_relative:. transport/rpc/stats/stats.proto
+    - go mod tidy > /dev/null 2>&1
+    - go mod download > /dev/null 2>&1
+    - go fmt ./... > /dev/null 2>&1
+
