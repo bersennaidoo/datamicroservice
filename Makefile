@@ -22,10 +22,10 @@ build.%:
 
 # rpc generators
 
-rpc: $(shell ls -d transport/rpc/* | sed -e 's/\//./')
+rpc: $(shell ls -d transport/rpc/* | sed -e 's/\//./' | sed -e 's/\//./')
 	@echo OK.
 
-transport.rpc/stats:
+transport.rpc.stats:
 	protoc --proto_path=. -Itransport/rpc/stats --go_out=paths=source_relative:. transport/rpc/stats/stats.proto
 	protoc --proto_path=. -Itransport/rpc/stats --twirp_out=paths=source_relative:. transport/rpc/stats/stats.proto
 
