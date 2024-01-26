@@ -43,5 +43,8 @@ templates: $(shell ls -d transport/rpc/* | sed -e 's/rpc\//templates./g')
 transport/templates.%: export SERVICE=$*
 transport/templates.%: export SERVICE_CAMEL=$(shell echo $(SERVICE) | sed -r 's/(^|_)([a-z])/\U\2/g')
 transport/templates.%:
-	mkdir -p cmd/$(SERVICE)
-	@envsubst < templates/cmd_main.go.tpl > cmd/$(SERVICE)/main.go
+	mkdir -p cmd/$(SERVICE) transport/rpc/$(SERVICE)/client transport/rpc/$(SERVICE)/server
+	@envsubst < foundation/templates/cmd_main.go.tpl > cmd/$(SERVICE)/main.go
+	@envsubst < foundation/templates/client_client.go.tpl > transport/rpc/$(SERVICE)/client/client.go
+	@echo "~ transport/rpc/$(SERVICE)/client/client.go"
+	@./foundation/templates/server_server.go.sh
