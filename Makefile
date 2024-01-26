@@ -1,4 +1,4 @@
-.PHONY: all build rpc
+.PHONY: all build rpc templates
 
 all:
 	drone exec
@@ -35,6 +35,8 @@ transport.rpc.%:
 	@echo '> protoc gen for $(SERVICE)'
 	@protoc --proto_path=. -Irpc/$(SERVICE) --go_out=plugins=grpc,paths=source_relative:. rpc/$(SERVICE)/$(SERVICE).proto
 	@protoc --proto_path=. -Irpc/$(SERVICE) --twirp_out=paths=source_relative:. rpc/$(SERVICE)/$(SERVICE).proto
+
+# template generate
 
 templates: export MODULE=$(shell grep ^module go.mod | sed -e 's/module //g')
 templates: $(shell ls -d transport/rpc/* | sed -e 's/rpc\//templates./g')
