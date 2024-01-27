@@ -1,13 +1,7 @@
-.PHONY: all build build-cli rpc templates lint
+.PHONY: all build build-cli rpc templates migrate lint
 
 all:
 	drone exec
-
-protocgrpc:
-	protoc --proto_path=. -Itransport/rpc/stats --go_out=plugins=grpc,paths=source_relative:. transport/rpc/stats/stats.proto
-
-protoctwirp:
-	protoc --proto_path=. -Itransport/rpc/stats --twirp_out=paths=source_relative:. transport/rpc/stats/stats.proto
 
 build: export GOOS = linux
 build: export GOARCH = amd64
