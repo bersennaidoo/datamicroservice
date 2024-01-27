@@ -76,11 +76,11 @@ migrate.%:
 	mysql -h localhost -u root -p$(MYSQL_ROOT_PASSWORD) -e "CREATE DATABASE IF NOT EXISTS migrations;"
 	./build/mysqldb-migrate-cli-linux-amd64 -service $(SERVICE) -db-dsn "root:$(MYSQL_ROOT_PASSWORD)@tcp(localhost:3306)/$(SERVICE)" -real=true
 	./build/mysqldb-migrate-cli-linux-amd64 -service $(SERVICE) -db-dsn "root:$(MYSQL_ROOT_PASSWORD)@tcp(localhost:3306)/$(SERVICE)" -real=true
-	@mkdir -p server/$(SERVICE)
-	@find server/$(SERVICE) -name types_gen.go -delete
-	@rm -rf docs/schema/$(SERVICE)
-	./build/mysqldb-schema-cli-linux-amd64 -service $(SERVICE) -schema stats -db-dsn $(DSN) -format go -output server/$(SERVICE)
-	./build/mysqldb-schema-cli-linux-amd64 -service $(SERVICE) -schema stats -db-dsn $(DSN) -format markdown -output docs/schema/$(SERVICE)
+	@mkdir -p domain/models/$(SERVICE)
+	@find domain/models/$(SERVICE) -name types_gen.go -delete
+	@rm -rf documentation/schema/$(SERVICE)
+	./build/mysqldb-schema-cli-linux-amd64 -service $(SERVICE) -schema stats -db-dsn $(DSN) -format go -output domain/models/$(SERVICE)
+	./build/mysqldb-schema-cli-linux-amd64 -service $(SERVICE) -schema stats -db-dsn $(DSN) -format markdown -output documentation/schema/$(SERVICE)
 	./build/mysqldb-schema-cli-linux-amd64 -schema migrations -db-dsn $(DSN) -drop=true
 
 # lint code
