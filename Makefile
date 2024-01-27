@@ -1,4 +1,4 @@
-.PHONY: all build rpc templates
+.PHONY: all build build-cli rpc templates lint
 
 all:
 	drone exec
@@ -18,7 +18,19 @@ build: $(shell ls -d cmd/* | grep -v "\-cli" | sed -e 's/cmd\//build./')
 build.%: SERVICE=$*
 build.%:
 	go build -o build/$(SERVICE)-$(GOOS)-$(GOARCH) ./cmd/$(SERVICE)/*.go
-	go build -o ./build ./cmd/...
+
+
+# build-cli
+build-cli: export GOOS = linux
+build-cli: export GOARCH = amd64
+build-cli: export CGO_ENABLED = 0
+build-cli: $(shell ls -d cmd/*-cli | sed -e 's/cmd\//build-cli./')
+	@echo OK.
+
+build-cli.%: SERVICE=$*
+build-cli.%:
+	go build -o build/$(SERVICE)-$(GOOS)-$(GOARCH) ./cmd/$(SERVICE)/*.go
+
 
 # rpc generators
 
@@ -50,3 +62,21 @@ transport/templates.%:
 	@envsubst < foundation/templates/client_client.go.tpl > transport/rpc/$(SERVICE)/client/client.go
 	@echo "~ transport/rpc/$(SERVICE)/client/client.go"
 	@./foundation/templates/server_server.go.sh
+
+# database migrations
+
+migrate: $(shell ls -d infrastructure/repositories/mysqldb/schema/*/migrations.sql | xargs -n1 dirname | sed -e 's/infrastructure.repositories.mysqldb.schema./migrate./')
+	@echo OK.
+
+migrate.%: export SERVICE = $*
+migrate.%: export MYSQL_ROOT_PASSWORD = bersen
+migrate.%:
+	mysql -h localhost -u root -p$(MYSQL_ROOT_PASSWORD) -e "CREATE DATABASE $(SERVICE);"
+	./build/mysqldb-migrate-cli-linux-amd64 -service $(SERVICE) -db-dsn "root:$(MYSQL_ROOT_PASSWORD)@tcp(localhost:3306)/$(SERVICE)" -real=true
+	./build/mysqldb-migrate-cli-linux-amd64 -service $(SERVICE) -db-dsn "root:$(MYSQL_ROOT_PASSWORD)@tcp(localhost:3306)/$(SERVICE)" -real=true
+
+# lint code
+
+lint:
+	golangci-lint run --enable-all -D gomnd,gochecknoglobals,godox,gofmt,wsl,lll,gocognit,funlen ./...
+

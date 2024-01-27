@@ -30,11 +30,16 @@ function render_schema {
 	echo "}"
 }
 
-schemas=$(ls /home/bersen/go_projects/microdataservice/infrastructure/repositories/mysqldb/schema/*/migrations.sql | xargs -n1 dirname | sort)
+schemas=$(ls infrastructure/repositories/mysqldb/schema/*/migrations.sql | xargs -n1 dirname | sort)
 
+# output="infrastructure/repositories/mysqldb/schema.go"
 for schema in $schemas; do
-    #schema_relative=${schema/mysqldb\//}
-    output="infrastructure/repositories/mysqldb/schema.go"
+    echo $schema
+    schema_relative=${schema/mysqldb\//}
+    schema_relative=${schema_relative/repositories\//}
+    schema_relative=${schema_relative/infrastructure\//}
+    echo $schema_relative
+    output="infrastructure/repositories/mysqldb/${schema_relative/\//_}.go"
 
     render_service_schema $schema > $output
 done
