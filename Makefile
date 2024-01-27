@@ -70,10 +70,18 @@ migrate: $(shell ls -d infrastructure/repositories/mysqldb/schema/*/migrations.s
 
 migrate.%: export SERVICE = $*
 migrate.%: export MYSQL_ROOT_PASSWORD = bersen
+migrate.%: DSN = "root:bersen@tcp(localhost:3306)/stats"
 migrate.%:
-	mysql -h localhost -u root -p$(MYSQL_ROOT_PASSWORD) -e "CREATE DATABASE $(SERVICE);"
+	mysql -h localhost -u root -p$(MYSQL_ROOT_PASSWORD) -e "CREATE DATABASE IF NOT EXISTS $(SERVICE);"
+	mysql -h localhost -u root -p$(MYSQL_ROOT_PASSWORD) -e "CREATE DATABASE IF NOT EXISTS migrations;"
 	./build/mysqldb-migrate-cli-linux-amd64 -service $(SERVICE) -db-dsn "root:$(MYSQL_ROOT_PASSWORD)@tcp(localhost:3306)/$(SERVICE)" -real=true
 	./build/mysqldb-migrate-cli-linux-amd64 -service $(SERVICE) -db-dsn "root:$(MYSQL_ROOT_PASSWORD)@tcp(localhost:3306)/$(SERVICE)" -real=true
+	@mkdir -p server/$(SERVICE)
+	@find server/$(SERVICE) -name types_gen.go -delete
+	@rm -rf docs/schema/$(SERVICE)
+	./build/mysqldb-schema-cli-linux-amd64 -service $(SERVICE) -schema stats -db-dsn $(DSN) -format go -output server/$(SERVICE)
+	./build/mysqldb-schema-cli-linux-amd64 -service $(SERVICE) -schema stats -db-dsn $(DSN) -format markdown -output docs/schema/$(SERVICE)
+	./build/mysqldb-schema-cli-linux-amd64 -schema migrations -db-dsn $(DSN) -drop=true
 
 # lint code
 
