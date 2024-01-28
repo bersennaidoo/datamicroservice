@@ -7,7 +7,7 @@ import (
 )
 
  func New() stats.StatsService {
-   return NewCustom("http://stats.service:3000", http.Client{})
+   return NewCustom("http://stats.service:3000", &http.Client{})
 }
 
  func NewCustom(addr string, client stats.HTTPClient) stats.StatsService {

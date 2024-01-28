@@ -5,6 +5,7 @@ go 1.21.0
 require (
 	github.com/SentimensRG/sigctx v0.0.0-20171003180858-c19b774db63b
 	github.com/go-sql-driver/mysql v1.7.1
+	github.com/google/wire v0.5.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/pkg/errors v0.8.1
 	github.com/serenize/snaker v0.0.0-20201027110005-a7ad2135616e

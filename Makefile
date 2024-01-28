@@ -51,11 +51,13 @@ templates: $(shell ls -d transport/rpc/* | sed -e 's/rpc\//templates./g')
 transport/templates.%: export SERVICE=$*
 transport/templates.%: export SERVICE_CAMEL=$(shell echo $(SERVICE) | sed -r 's/(^|_)([a-z])/\U\2/g')
 transport/templates.%:
-	mkdir -p cmd/$(SERVICE) transport/rpc/$(SERVICE)/client transport/rpc/$(SERVICE)/server
+	mkdir -p cmd/$(SERVICE) transport/rpc/$(SERVICE)/client transport/rpc/$(SERVICE)/server transport/rpc/$(SERVICE)/wireclient
 	@envsubst < foundation/templates/cmd_main.go.tpl > cmd/$(SERVICE)/main.go
 	@envsubst < foundation/templates/client_client.go.tpl > transport/rpc/$(SERVICE)/client/client.go
+	@envsubst < foundation/templates/server_wire.go.tpl > transport/rpc/$(SERVICE)/server/wire.go
 	@echo "~ transport/rpc/$(SERVICE)/client/client.go"
 	@./foundation/templates/server_server.go.sh
+	@./foundation/templates/client_wire.go.sh
 
 # database migrations
 
@@ -68,14 +70,14 @@ migrate.%: DSN = "root:bersen@tcp(localhost:3306)/stats"
 migrate.%:
 	mysql -h localhost -u root -p$(MYSQL_ROOT_PASSWORD) -e "CREATE DATABASE IF NOT EXISTS $(SERVICE);"
 	mysql -h localhost -u root -p$(MYSQL_ROOT_PASSWORD) -e "CREATE DATABASE IF NOT EXISTS migrations;"
-	./build/mysqldb-migrate-cli-linux-amd64 -service $(SERVICE) -db-dsn "root:$(MYSQL_ROOT_PASSWORD)@tcp(localhost:3306)/$(SERVICE)" -real=true
-	./build/mysqldb-migrate-cli-linux-amd64 -service $(SERVICE) -db-dsn "root:$(MYSQL_ROOT_PASSWORD)@tcp(localhost:3306)/$(SERVICE)" -real=true
+	./build/mysqldb-migrate-cli-linux-amd64 -service $(SERVICE) -db-dsn $(DSN) -real=true
+	./build/mysqldb-migrate-cli-linux-amd64 -service $(SERVICE) -db-dsn $(DSN) -real=true
 	@mkdir -p domain/models/$(SERVICE)
 	@find domain/models/$(SERVICE) -name types_gen.go -delete
 	@rm -rf documentation/schema/$(SERVICE)
 	./build/mysqldb-schema-cli-linux-amd64 -service $(SERVICE) -schema stats -db-dsn $(DSN) -format go -output domain/models/$(SERVICE)
 	./build/mysqldb-schema-cli-linux-amd64 -service $(SERVICE) -schema stats -db-dsn $(DSN) -format markdown -output documentation/schema/$(SERVICE)
-	./build/mysqldb-schema-cli-linux-amd64 -schema migrations -db-dsn $(DSN) -drop=true
+	# ./build/mysqldb-schema-cli-linux-amd64 -schema stats -db-dsn $(DSN) -drop=true
 
 # lint code
 
