@@ -6,4 +6,8 @@ import (
 	"github.com/google/wire"
 )
 
-var Inject = wire.NewSet(mysqldb.Connect, wireclient.Inject)
+var Inject = wire.NewSet(
+	mysqldb.Connect,
+	Sonyflake,
+	wireclient.Inject,
+)

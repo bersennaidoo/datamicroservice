@@ -51,8 +51,8 @@ templates: $(shell ls -d transport/rpc/* | sed -e 's/rpc\//templates./g')
 transport/templates.%: export SERVICE=$*
 transport/templates.%: export SERVICE_CAMEL=$(shell echo $(SERVICE) | sed -r 's/(^|_)([a-z])/\U\2/g')
 transport/templates.%:
-	mkdir -p cmd/$(SERVICE) transport/rpc/$(SERVICE)/client transport/rpc/$(SERVICE)/server transport/rpc/$(SERVICE)/wireclient
-	@envsubst < foundation/templates/cmd_main.go.tpl > cmd/$(SERVICE)/main.go
+	mkdir -p transport/rpc/$(SERVICE)/client transport/rpc/$(SERVICE)/server transport/rpc/$(SERVICE)/wireclient
+	#@envsubst < foundation/templates/cmd_main.go.tpl > cmd/$(SERVICE)/main.go
 	@envsubst < foundation/templates/client_client.go.tpl > transport/rpc/$(SERVICE)/client/client.go
 	@envsubst < foundation/templates/server_wire.go.tpl > transport/rpc/$(SERVICE)/server/wire.go
 	@echo "~ transport/rpc/$(SERVICE)/client/client.go"
@@ -69,7 +69,8 @@ migrate.%: export MYSQL_ROOT_PASSWORD = bersen
 migrate.%: DSN = "root:bersen@tcp(localhost:3306)/stats"
 migrate.%:
 	mysql -h localhost -u root -p$(MYSQL_ROOT_PASSWORD) -e "CREATE DATABASE IF NOT EXISTS $(SERVICE);"
-	mysql -h localhost -u root -p$(MYSQL_ROOT_PASSWORD) -e "CREATE DATABASE IF NOT EXISTS migrations;"
+	#mysql -h localhost -u root -p$(MYSQL_ROOT_PASSWORD) -e "CREATE DATABASE IF NOT EXISTS migrations;"
+	#docker exec -it arcboxmysql mysql -h localhost -u root -p$(MYSQL_ROOT_PASSWORD) -e "CREATE DATABASE IF NOT EXISTS $(SERVICE);"	
 	./build/mysqldb-migrate-cli-linux-amd64 -service $(SERVICE) -db-dsn $(DSN) -real=true
 	./build/mysqldb-migrate-cli-linux-amd64 -service $(SERVICE) -db-dsn $(DSN) -real=true
 	@mkdir -p domain/models/$(SERVICE)
@@ -80,6 +81,20 @@ migrate.%:
 	# ./build/mysqldb-schema-cli-linux-amd64 -schema stats -db-dsn $(DSN) -drop=true
 
 # lint code
+
+docker-start-arcboxmysql:
+	docker start arcboxmysql
+
+docker-stop-arcboxmysql:
+	docker stop arcboxmysql
+
+mysql:
+	sudo mysql -u root -h localhost -pbersen
+
+exportdsn:
+	export DB_DRIVER="mysql"
+	export DB_DSN="root:bersen@tcp(localhost:3306)/stats"
+
 
 lint:
 	golangci-lint run --enable-all -D gomnd,gochecknoglobals,godox,gofmt,wsl,lll,gocognit,funlen ./...

@@ -8,6 +8,7 @@ package server
 
 import (
 	"context"
+	"github.com/bersennaidoo/microdataservice/foundation/inject"
 	"github.com/bersennaidoo/microdataservice/infrastructure/repositories/mysqldb"
 )
 
@@ -18,8 +19,10 @@ func New(ctx context.Context) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
+	sonyflake := inject.Sonyflake()
 	server := &Server{
-		db: db,
+		db:        db,
+		sonyflake: sonyflake,
 	}
 	return server, nil
 }
